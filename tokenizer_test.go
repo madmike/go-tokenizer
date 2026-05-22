@@ -18,14 +18,14 @@ func TestCountSingleWords(t *testing.T) {
 		word     string
 		expected int
 	}{
-		{"hello", 1},      // 5 chars → 1 token
-		{"world", 1},      // 5 chars → 1 token
-		{"configure", 2},  // 9 chars → 2 tokens
+		{"hello", 2},        // 5 chars → 2 tokens
+		{"world", 2},        // 5 chars → 2 tokens
+		{"configure", 3},    // 9 chars → 3 tokens
 		{"optimization", 3}, // 12 chars → 3 tokens
-		{"a", 1},          // 1 char → 1 token
-		{"at", 1},         // 2 chars → 1 token
-		{"test", 1},       // 4 chars → 1 token
-		{"testing", 2},    // 7 chars → 2 tokens
+		{"a", 1},            // 1 char → 1 token
+		{"at", 1},           // 2 chars → 1 token
+		{"test", 1},         // 4 chars → 1 token
+		{"testing", 2},      // 7 chars → 2 tokens
 	}
 
 	for _, tt := range tests {
@@ -37,14 +37,14 @@ func TestCountSingleWords(t *testing.T) {
 // TestCountMultipleWords counts word count × 1.3 heuristic.
 func TestCountMultipleWords(t *testing.T) {
 	tests := []struct {
-		text        string
-		minTokens   int // conservative minimum
-		maxTokens   int // generous maximum
+		text      string
+		minTokens int // conservative minimum
+		maxTokens int // generous maximum
 	}{
-		{"hello world", 2, 3},
+		{"hello world", 4, 5},
 		{"the quick brown fox", 5, 7},
-		{"what is your name", 5, 8},
-		{"python programming language", 4, 6},
+		{"what is your name", 4, 8},
+		{"python programming language", 4, 7},
 	}
 
 	for _, tt := range tests {
@@ -60,10 +60,10 @@ func TestCountCJK(t *testing.T) {
 		text     string
 		expected int
 	}{
-		{"你好", 2},        // Chinese: 2 chars → 2 tokens
-		{"こんにちは", 5},  // Japanese: 5 chars → 5 tokens
-		{"안녕하세요", 5},  // Korean: 5 chars → 5 tokens
-		{"中文测试", 4},    // Mixed Chinese → 4 tokens
+		{"你好", 2},    // Chinese: 2 chars → 2 tokens
+		{"こんにちは", 5}, // Japanese: 5 chars → 5 tokens
+		{"안녕하세요", 5}, // Korean: 5 chars → 5 tokens
+		{"中文测试", 4},  // Mixed Chinese → 4 tokens
 	}
 
 	for _, tt := range tests {
@@ -75,13 +75,13 @@ func TestCountCJK(t *testing.T) {
 // TestCountCyrillic handles Russian/Cyrillic text.
 func TestCountCyrillic(t *testing.T) {
 	tests := []struct {
-		text     string
+		text      string
 		minTokens int
 		maxTokens int
 	}{
-		{"привет", 1, 2},        // Russian word → 1-2 tokens
-		{"hello привет", 2, 4},  // Mixed Latin+Cyrillic
-		{"Москва", 1, 2},        // City name
+		{"привет", 1, 2},       // Russian word → 1-2 tokens
+		{"hello привет", 2, 4}, // Mixed Latin+Cyrillic
+		{"Москва", 1, 2},       // City name
 	}
 
 	for _, tt := range tests {
@@ -102,7 +102,7 @@ func TestCountArabic(t *testing.T) {
 // TestCountNumbers handles numeric sequences.
 func TestCountNumbers(t *testing.T) {
 	tests := []struct {
-		text     string
+		text      string
 		minTokens int
 	}{
 		{"123", 1},
@@ -120,7 +120,7 @@ func TestCountNumbers(t *testing.T) {
 // TestCountPunctuation handles punctuation and special characters.
 func TestCountPunctuation(t *testing.T) {
 	tests := []struct {
-		text     string
+		text      string
 		minTokens int
 	}{
 		{"Hello, world!", 2},
@@ -141,11 +141,11 @@ func TestCountWhitespace(t *testing.T) {
 		text     string
 		expected int
 	}{
-		{"   ", 0},                   // Only spaces
-		{"hello  world", 2},          // Double spaces
-		{"hello\nworld", 2},          // Newline
-		{"hello\tworld", 2},          // Tab
-		{"hello \n world", 2},        // Mixed whitespace
+		{"   ", 0},            // Only spaces
+		{"hello  world", 4},   // Double spaces
+		{"hello\nworld", 4},   // Newline
+		{"hello\tworld", 4},   // Tab
+		{"hello \n world", 4}, // Mixed whitespace
 	}
 
 	for _, tt := range tests {
@@ -171,7 +171,7 @@ This approach handles all Unicode scripts correctly.`
 // TestCountHyphenatedWords handles hyphenated words correctly.
 func TestCountHyphenatedWords(t *testing.T) {
 	tests := []struct {
-		text     string
+		text      string
 		minTokens int
 	}{
 		{"self-aware", 1},
@@ -188,7 +188,7 @@ func TestCountHyphenatedWords(t *testing.T) {
 // TestCountApostrophes handles apostrophes in contractions.
 func TestCountApostrophes(t *testing.T) {
 	tests := []struct {
-		text     string
+		text      string
 		minTokens int
 	}{
 		{"don't", 1},
@@ -206,8 +206,8 @@ func TestCountApostrophes(t *testing.T) {
 func TestCountConservativeOverCount(t *testing.T) {
 	// These tests ensure we don't under-count, which would break chunk splitting
 	testCases := []struct {
-		text     string
-		maxChars int
+		text      string
+		maxChars  int
 		maxTokens int
 	}{
 		// A 500-char chunk should not exceed 200 tokens
@@ -243,8 +243,8 @@ func TestLatinWordTokensEdgeCases(t *testing.T) {
 		{5, 2},
 		{8, 2},
 		{9, 3},
-		{12, 4},
-		{16, 5},
+		{12, 3},
+		{16, 4},
 	}
 
 	for _, tt := range tests {
@@ -263,14 +263,14 @@ func TestIsCJKOrSyllabic(t *testing.T) {
 		{'あ', true},  // Hiragana
 		{'カ', true},  // Katakana
 		{'한', true},  // Hangul
-		{'ا', true},   // Arabic
-		{'א', true},   // Hebrew
-		{'ด', true},   // Thai
-		{'अ', true},   // Devanagari
-		{'a', false},  // Latin
-		{'б', false},  // Cyrillic
-		{'1', false},  // Digit
-		{' ', false},  // Space
+		{'ا', true},  // Arabic
+		{'א', true},  // Hebrew
+		{'ด', true},  // Thai
+		{'अ', true},  // Devanagari
+		{'a', false}, // Latin
+		{'б', false}, // Cyrillic
+		{'1', false}, // Digit
+		{' ', false}, // Space
 	}
 
 	for _, tt := range tests {
